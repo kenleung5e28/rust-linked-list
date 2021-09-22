@@ -91,11 +91,11 @@ pub struct IterMut<'a, T> {
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
-  type Item = &'a T;
+  type Item = &'a mut T;
   fn next(&mut self) -> Option<Self::Item> {
     self.next.take().map(|node| {
       self.next = node.next.as_deref_mut();
-      &node.elem
+      &mut node.elem
     })
   }
 }
@@ -156,8 +156,11 @@ mod test {
     list.push(0);
     list.push(1);
     let mut iter = list.iter_mut();
-    assert_eq!(iter.next(), Some(&1));
-    assert_eq!(iter.next(), Some(&0));
-    assert_eq!(iter.next(), Some(&-1));
+    let mut x1 = iter.next();
+    assert_eq!(x1, Some(&mut 1));
+    x1 = iter.next();
+    assert_eq!(x1, Some(&mut 0));
+    x1 = iter.next();
+    assert_eq!(x1, Some(&mut -1));
   }
 }

@@ -48,6 +48,10 @@ impl<T> List<T> {
   pub fn iter(&self) -> Iter<T> {
     Iter { next: self.head.as_deref() }
   }
+
+  pub fn iter_mut(&mut self) -> IterMut<T> {
+    IterMut { next: self.head.as_deref_mut() }
+  }
 }
 
 impl<T> Drop for List<T> {
@@ -77,6 +81,20 @@ impl<'a, T> Iterator for Iter<'a, T> {
   fn next(&mut self) -> Option<Self::Item> {
     self.next.map(|node| {
       self.next = node.next.as_deref();
+      &node.elem
+    })
+  }
+}
+
+pub struct IterMut<'a, T> {
+  next: Option<&'a mut Node<T>>,
+}
+
+impl<'a, T> Iterator for IterMut<'a, T> {
+  type Item = &'a T;
+  fn next(&mut self) -> Option<Self::Item> {
+    self.next.take().map(|node| {
+      self.next = node.next.as_deref_mut();
       &node.elem
     })
   }
@@ -129,5 +147,17 @@ mod test {
     assert_eq!(iter.next(), Some(&-32768));
     assert_eq!(iter.next(), Some(&2046));
     assert_eq!(iter.next(), Some(&1997));
+  }
+
+  #[test]
+  fn iter_mut() {
+    let mut list = List::new();
+    list.push(-1);
+    list.push(0);
+    list.push(1);
+    let mut iter = list.iter_mut();
+    assert_eq!(iter.next(), Some(&1));
+    assert_eq!(iter.next(), Some(&0));
+    assert_eq!(iter.next(), Some(&-1));
   }
 }
